@@ -16,7 +16,7 @@ import (
 */
 const (
 	apiServer = "https://kubernetes.default.svc"						// indirizzo interno del server API di kubernetes 
-	tokenPath = "/var/run/secrets/kubernetes.io/serviceaccount/token"	// percorso del token di autenticazione (montato in automatico da kubernetes)
+	tokenPath = "/var/run/secrets/kubernetes.io/serviceaccount/token"	// percorso del token di autenticazione (montato in automatico da kubernetes). in realtà non viene usato quello di default, ma kubernetes monterà quello del serviceaccount
 	caPath    = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"	// percorso del certificato (montato in automatico da kubernetes)
 )
 
@@ -99,29 +99,24 @@ func handleProxy(client *http.Client, w http.ResponseWriter, r *http.Request) {
 	req.Header.Set("Authorization", "Bearer "+token)					// set sovrascrive tutto. attenzione, lo standard http è proprio un header con formato "Authorization: Bearer <token>" quindi attenzione ai typo
 
 
-
-
-
-
-
-
-// sono arrivato quaaa 
-
-
-
-
-	// Content-Type fallback
+	// se non cè un content type, lo mettiamo application/json come si aspetta kubernetes 
 	if req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	resp, err := client.Do(req)
+	// manda effetivamente la richiesta all'API server
+	resp, err := client.Do(req)//SOSPENSIVA, aspetta la risposta
 	if err != nil {
 		http.Error(w, "Errore chiamata API Kubernetes", 500)
 		return
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close()												// resp.Body è il corpo della risposta http, ed è in formato stream, dobbiamo quindi chiuderlo per non lasciarlo aperto
+																			// i dati infatti potrebbero arrivare a pezzi. defer promette di eseguire quella funzione (la close)
+																				// una volta finita la funzione corrente 
 
+	//NOTA: il canale w rappresenta un canale diretto con il client originale che ha mandato la richiesta al proxy 
+	// funziona infatti che se devi mandare una richiesta di tua iniziativa, crei tutta la richiesta e la mandi con Client.Do, 
+	// invece se devi rispondere, hai a disposizione il canale w per mandare la risposta al mittente originario
 	// Copia status code
 	w.WriteHeader(resp.StatusCode)
 

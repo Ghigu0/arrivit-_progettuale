@@ -1,20 +1,48 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: proxy-deployment
-spec:
-  replicas: 1
-  selector:
+apiVersion: apps/v1                         # indica quale API di kubernetes stai usando 
+kind: Deployment                            # indica che appunto vuoi creare un deployment
+metadata:                                   # metadati del deployment
+  name: proxy-deployment                    # nome del DEPLOYMENT (non del pod)
+spec:                                       # con spec definiamo come deve funzionare
+  replicas: 1                               # usiamo una replica (quindi un solo pod)
+  selector:                                 # significa che questo deployment gestisce i pod con label app: proxy
     matchLabels:
       app: proxy
-  template:
+  template:                                 # definisce il pod che verrà creato 
     metadata:
       labels:
-        app: proxy
+        app: proxy                          # al pod verrà assegnata la label "proxy"
     spec:
-      serviceAccountName: proxy-sa
+      serviceAccountName: proxy-sa          # l'altro file yaml sul service account avrà questo identificatore
       containers:
-      - name: proxy
+      - name: proxy                         # il nome del container
         image: METTIMI L'IMMAGINE GIUSTA 
         ports:
         - containerPort: 8080
+
+
+
+
+# apiVersion: apps/v1  indica quale API di kubernetes usare per creare
+# quella risorsa. Kubernetes ha più API groups e versioni (apps/v1 per
+# deployment e replicaSet, batch/v1 per Job e CronJob etc). diciamo
+# che indirettamente chiama una api precisa del kube-API-server
+# (cambia solo l'endpoint interno).
+
+
+
+# Nel Deployment di Kubernetes, il campo selector.matchLabels serve a 
+# identificare quali Pod sono gestiti dal Deployment, mentre 
+# template.metadata.labels definisce le etichette che verranno assegnate
+# ai Pod creati. In pratica, il template crea nuovi Pod con una certa 
+# label (ad esempio app: proxy), e il selector usa quella stessa label
+# per riconoscerli e gestirli. Kubernetes non collega direttamente 
+# Deployment e Pod, ma usa questo meccanismo basato su label. È 
+# fondamentale che le label nel selector e nel template coincidano:
+# in questo modo il Deployment può controllare correttamente i Pod che crea.
+
+# specifichi serviceAccountName: proxy-sa che magari non esiste ancora. 
+# questo non è un problema perchè il kube-controller-manager ha un insieme
+# di controller, tra i quali anche il deployment controller, il quale 
+# cerca costantemente di fare la riconciliazione tra lo stato atuale e 
+# quello desiderato. quindi appena verrà fatto l'apply del manifest 
+# del service account, allora tutto si metterà aposto
