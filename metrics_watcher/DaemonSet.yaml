@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-metrics-agent
+spec:
+  selector:
+    matchLabels:
+      app: node-metrics-agent #dovrò mettere questa label ai pod 
+  template: #definisce i pod che andrà a creare 
+    metadata:
+      labels:
+        app: node-metrics-agent
+    spec:
+      containers:
+        - name: agent
+          image: ghigu/progatt:metrics_watcher
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc

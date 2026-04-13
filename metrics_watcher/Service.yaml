@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-metrics
+spec:
+  clusterIP: None #questo rende il service headless (non assegna un ip a questo service, restituisce solo gli ip dei pod)
+  selector:
+    app: node-metrics-agent
+  ports:
+    - port: 8080
+      targetPort: 8080
+
+      # è un service headless che restituisce direttamente l'ip del pod 
+      # in questo caso restituirà tutti gli ip dei pod di questo service 
+      # (che poi il collector userà per ottenere i suoi dati)

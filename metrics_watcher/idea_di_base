@@ -1,0 +1,14 @@
+l'idea di base è un daemonset (una copia per nodo) 
+che espone un endpoint da contattare (es /metrics)
+questo pod è in grado di leggere dalle cartelle dell'os 
+quali /proc e /sys dove sono raccolte le informazioni del sistema
+
+L'idea sarà quindi che avremo un Agent su ogni nodo ( quello appena descritto)
+e poi un ulteriore agent che farà da collettore, il quale una volta chiamato chiamerà gli
+altri nodi, otterrà tutte le spec e poi le restituirà all'utente finale che chiamerà
+l'endpoint esposto dal collettore
+
+è necessario fare così, in quanto l'alternativa sarebbe chiamare l'endpoint del kubelet
+(quello chiamato da kubectl get top) ci sarebbe il problema che questa funzionalità analizza
+anche le metriche dei runtime dei pod, MA, se tu hai dei pod con il runtime wasmedge allora
+non è più in grado di fare il suo lavoro e ti costruisce NA 
