@@ -10,6 +10,8 @@ spec:
       port: 8080        # porta del service (tu manderai richieste quindi a proxy-service.default.svc:8080 e lui le inoltra al pod/container proxy alla porta)
       targetPort: 8080  # alla porta 8080
 
+# proxy-service.default.svc:8080  segue la struttura <nome-service>.<namespace>.svc.<cluster-domain>
+
 
 # il traffico viene inoltrato al pod, che normalmente ha un container e ok, ma se ne ha di più ??
 
