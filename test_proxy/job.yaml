@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: proxy-test-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: tester
+        image: curlimages/curl:8.5.0
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "🔹 Calling proxy..."
+            curl -s http://proxy-service:8080/api/v1/pods
+            echo "\n✅ Done"
+      restartPolicy: Never
+  backoffLimit: 2
