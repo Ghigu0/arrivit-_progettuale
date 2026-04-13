@@ -15,7 +15,7 @@ spec:                                       # con spec definiamo come deve funzi
       serviceAccountName: proxy-sa          # l'altro file yaml sul service account avrà questo identificatore
       containers:
       - name: proxy                         # il nome del container
-        image: ghigu/attprog:proxy
+        image: ghigu/attprog:proxyv2
         ports:
         - containerPort: 8080
 

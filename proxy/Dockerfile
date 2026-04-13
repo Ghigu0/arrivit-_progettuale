@@ -3,9 +3,11 @@ WORKDIR /app
 COPY . .
 RUN go build -o proxy
 
-FROM gcr.io/distroless/base-debian12
+FROM alpine:3.19
 WORKDIR /
+
 COPY --from=builder /app/proxy /proxy
 
-USER nonroot:nonroot
+RUN chmod +x /proxy
+
 ENTRYPOINT ["/proxy"]
