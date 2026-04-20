@@ -29,7 +29,7 @@ type Metrics struct {
 	MemTotalKB      uint64  `json:"mem_total_kb"`
 	MemUsedKB       uint64  `json:"mem_used_kb"`
 	MemAvailableKB  uint64  `json:"mem_available_kb"`
-	NodeIP          string  `json:"node_ip"`
+	NodeName        string  `json:"node_name"`
 }
 
 // Legge CPU da /proc/stat
@@ -142,14 +142,15 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	nodeName := os.Getenv("NODE_NAME")
+	log.Println("Watcher running on node:", nodeName)
 
-	nodeIP := os.Getenv("NODE_IP")
 	metrics := Metrics{
 		CPUUsagePercent: cpu,
 		MemTotalKB:      total,
 		MemUsedKB:       used,
 		MemAvailableKB:  available,
-		NodeIP:          nodeIP,
+		NodeName:        nodeName,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

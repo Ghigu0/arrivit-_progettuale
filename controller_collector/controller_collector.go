@@ -18,7 +18,7 @@ type Metrics struct {
 	MemTotalKB      uint64  `json:"mem_total_kb"`
 	MemUsedKB       uint64  `json:"mem_used_kb"`
 	MemAvailableKB  uint64  `json:"mem_available_kb"`
-	NodeIP          string  `json:"node_ip"`
+	NodeName        string  `json:"node_name"`
 }
 
 // prende le metriche dai watcher
@@ -173,7 +173,7 @@ func reconcile() {
 
 		if m.CPUUsagePercent > 5 {
 
-			log.Println("Nodo in overload:", m.NodeIP)
+			log.Println("Nodo in overload:", m.NodeName)
 
 			for _, p := range pods {
 
@@ -181,8 +181,9 @@ func reconcile() {
 				if p.Metadata.Labels["app"] == "controller_metrics" {
 					continue
 				}
-
-				if p.Spec.NodeName == m.NodeIP && isEvictable(p) {
+				log.Println("Controllo pod:", p.Metadata.Name)
+				log.Printf("\nspec.nodename=%s e ,nodeName=%s\n", p.Spec.NodeName, m.NodeName)
+				if p.Spec.NodeName == m.NodeName && isEvictable(p) {
 
 					log.Println("Elimino pod:", p.Metadata.Name)
 

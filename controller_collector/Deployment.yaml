@@ -14,5 +14,5 @@ spec:
     spec:
       containers:
       - name: controller
-        image: ghigu/attprog:controller_collectorv1
+        image: ghigu/attprog:controller_collectorv2
         imagePullPolicy: IfNotPresent

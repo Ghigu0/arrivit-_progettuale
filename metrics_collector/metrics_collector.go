@@ -15,7 +15,7 @@ type Metrics struct {
 	MemTotalKB      uint64  `json:"mem_total_kb"`
 	MemUsedKB       uint64  `json:"mem_used_kb"`
 	MemAvailableKB  uint64  `json:"mem_available_kb"`
-	NodeIP          string  `json:"node_ip"`
+	NodeName        string  `json:"node_name"`
 }
 
 // handler del collector
@@ -53,7 +53,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("errore parsing", ip, err)
 			continue
 		}
-
+		log.Println("Ricevute metriche da nodo:", m.NodeName)
 		results = append(results, m)
 	}
 
