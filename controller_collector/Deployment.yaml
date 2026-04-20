@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller_metrics
+  template:
+    metadata:
+      labels:
+        app: controller_metrics
+    spec:
+      containers:
+      - name: controller
+        image: ghigu/attprog:controller_collectorv1
+        imagePullPolicy: IfNotPresent
