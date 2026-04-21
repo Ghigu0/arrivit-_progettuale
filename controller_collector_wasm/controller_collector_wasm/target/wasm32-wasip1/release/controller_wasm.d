@@ -1,0 +1,1 @@
+/home/ghigu/Scrivania/attività_progettuale/controller_collector_wasm/controller_collector_wasm/target/wasm32-wasip1/release/controller_wasm.wasm: /home/ghigu/Scrivania/attività_progettuale/controller_collector_wasm/controller_collector_wasm/src/main.rs
