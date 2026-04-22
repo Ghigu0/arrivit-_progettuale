@@ -1,0 +1,115 @@
+entry point in yaml o dockerfile
+
+
+
+nel worker funzionava
+
+
+
+nel master di nuovo installto lo shim ma poi
+
+
+
+admin@Master:~/Scrivania/arrivit-_progettuale/controller_collector_wasm/controller_collector_wasm$ sudo cat /var/lib/rancher/k3s/agent/etc/containerd/config.toml | grep -i wasmedge
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.'wasmedge']
+  runtime_type = "io.containerd.wasmedge.v1"
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.'wasmedge'.options]
+  BinaryName = "/opt/kwasm/bin/containerd-shim-wasmedge-v1"
+
+  Bravissimo, hai appena fatto un'ispezione da vero sistemista e hai trovato un dettaglio cruciale!
+
+La configurazione c'è, ma se guardi attentamente l'ultima riga del tuo output, c'è un colpo di scena:
+
+BinaryName = "/opt/kwasm/bin/containerd-shim-wasmedge-v1"
+
+Cosa ci dice questo?
+Ci dice che sul nodo Master, l'operatore KWasm ha configurato containerd per cercare l'eseguibile di WasmEdge all'interno della cartella /opt/kwasm/bin/.
+
+Tuttavia, con i comandi del passaggio precedente, noi abbiamo scaricato e salvato il binario in /usr/local/bin/ (che è il percorso di default classico, e quello che stranamente il tuo nodo Worker stava usando quando ti ha dato l'errore all'inizio).
+
+
+admin@Master:~/Scrivania/arrivit-_progettuale/controller_collector_wasm/controller_collector_wasm$ # 1. Crea la cartella (se non esiste già)
+sudo mkdir -p /opt/kwasm/bin
+
+# 2. Sposta l'eseguibile nella cartella corretta
+sudo mv /usr/local/bin/containerd-shim-wasmedge-v1 /opt/kwasm/bin/
+
+# 3. Assicurati che abbia i permessi corretti
+sudo chmod +x /opt/kwasm/bin/containerd-shim-wasmedge-v1
+admin@Master:~/Scrivania/arrivit-_progettuale/controller_collector_wasm/controller_collector_wasm$ 
+
+
+
+
+
+Mettiamoci comodi. Hai appena affrontato (e risolto brillantemente) un'eccellente sessione di debugging su una tecnologia considerata "bleeding-edge", ovvero molto recente e in continua evoluzione come WebAssembly su Kubernetes.
+
+Il tuo percorso si è diviso in due problemi distinti, uno di infrastruttura e uno di configurazione del container. Eccoli spiegati con calma, passo dopo passo.
+
+Atto Primo: L'inganno del file vuoto (L'errore exec format error)
+Il Ruolo di KWasm:
+Quando hai installato il KWasm Operator all'inizio, il suo compito era semplice: andare sui tuoi nodi worker, scaricare il "traduttore" (chiamato shim) per WasmEdge e configurare containerd per usarlo.
+
+Cosa è andato storto:
+Il progetto che gestisce questi shim (gestito da Microsoft Deislabs e dal team di Containerd) ha recentemente cambiato le cartelle e i nomi dei file su GitHub. Lo script automatico di KWasm ha cercato di scaricare il file dal vecchio indirizzo, ma GitHub ha risposto con una pagina di errore "404 Not Found".
+Invece di capire che era un errore, lo script di KWasm ha preso quella risposta vuota e l'ha salvata sul tuo disco chiamandola /usr/local/bin/containerd-shim-wasmedge-v1.
+
+Perché quell'errore strano?
+Quando Kubernetes provava ad avviare un pod Wasm, chiedeva a Linux di eseguire quel file. Linux apriva il file, vedeva che pesava 0 byte (non era un vero programma per CPU), e andava in crash restituendo exec format error (formato eseguibile non valido).
+
+Come lo abbiamo riparato:
+Siamo entrati nel nodo e, bypassando l'operatore, abbiamo interrogato direttamente le API di GitHub per trovare l'indirizzo della versione più recente e corretta. Abbiamo scaricato il vero binario (da 110 MB) e abbiamo sovrascritto il file vuoto. Da quel momento, l'infrastruttura ha iniziato a funzionare alla perfezione (come dimostrato dal pod wasm-test).
+
+Atto Secondo: L'immagine senza bussola (L'errore no command specified)
+Risolto il primo blocco, l'infrastruttura era pronta, ma il tuo pod specifico (controller-wasm) continuava a fallire con l'errore CreateContainerError.
+
+Cosa è andato storto:
+Hai creato la tua immagine Wasm partendo da FROM scratch (un'immagine vuota), copiandoci dentro solo il tuo file controller_wasm.wasm. Quando lo usi sul tuo pc locale, magari basta lanciare WasmEdge e passargli il file. Ma Kubernetes rispetta degli standard rigidi (OCI): quando avvia un container, esige di sapere quale comando lanciare. Poiché nel tuo Dockerfile non avevi inserito un ENTRYPOINT, Kubernetes si trovava davanti la tua immagine e diceva: "Ok, sono dentro... e adesso che programma avvio?".
+
+Come lo abbiamo riparato:
+Invece di farti ricompilare l'immagine e ricaricarla su Docker Hub, abbiamo usato una scorciatoia pulita e molto usata. Abbiamo aggiunto la direttiva command: ["/controller_wasm.wasm"] direttamente nel tuo file Deployment.yaml. In questo modo abbiamo detto esplicitamente a Kubernetes cosa eseguire.
+
+(C'è stato un piccolissimo Atto Terzo: l'errore del Tab. Il formato YAML odia le tabulazioni e accetta solo gli spazi. Abbiamo corretto l'indentazione e tutto è partito).
+
+come abbiamo trovato lo shim giusto ? 
+
+Questa è un'ottima domanda. Capire come si trova la soluzione è molto più utile che fare un semplice copia-incolla!
+
+Il problema di fondo era che i progetti open source (specialmente in ambiti nuovi come WebAssembly) cambiano spesso nome ai file, spostano le repository o aggiornano le versioni, rendendo i vecchi link (come quelli scritti dentro il codice di KWasm) obsoleti o non funzionanti (il famoso errore 404 Not Found).
+
+Invece di cercare a mano su Google o tirare a indovinare il link della versione più recente, abbiamo usato un approccio programmatico: abbiamo interrogato direttamente il "cervello" di GitHub (le sue API) per farci dire qual era l'ultimo link valido.
+
+Lo abbiamo fatto usando questa singola riga di comando, che nasconde una "catena di montaggio" di piccoli strumenti Linux:
+
+Bash
+
+DOWNLOAD_URL=$(curl -s https://api.github.com/repos/containerd/runwasi/releases/latest | grep "browser_download_url" | grep "wasmedge" | grep -iE "amd64|x86_64" | grep "tar.gz" | cut -d '"' -f 4 | head -n 1)
+Ecco come ha funzionato la magia, pezzo per pezzo, passandosi i dati tramite il simbolo | (chiamato pipe):
+
+curl -s https://api.github.com/repos/containerd/runwasi/releases/latest
+Questo è il punto di partenza. Invece di aprire la pagina web, abbiamo fatto una chiamata alle API pubbliche di GitHub chiedendo: "Dammi tutti i dati dell'ultima release del progetto runwasi". GitHub ci ha risposto con un enorme testo in formato JSON contenente le informazioni e i link di tutti i file rilasciati (per Mac, per Windows, per ARM, per Wasmtime, per WasmEdge, ecc.).
+
+grep "browser_download_url"
+Abbiamo preso quell'enorme testo JSON e lo abbiamo filtrato. grep ha scartato tutto tenendo solo le righe che contenevano la parola "browser_download_url", ovvero i link di download effettivi.
+
+grep "wasmedge"
+Il progetto runwasi rilascia shim per vari runtime (Wasmtime, Wasmer, WasmEdge). Con questo secondo filtro abbiamo buttato via tutto ciò che non riguardava esplicitamente WasmEdge.
+
+grep -iE "amd64|x86_64"
+Qui abbiamo sfruttato l'indagine che avevamo fatto prima sul tuo nodo! Sapevamo che il tuo worker usava un'architettura classica Intel/AMD a 64 bit. Quindi abbiamo filtrato solo i file destinati a amd64 o x86_64, scartando quelli per architetture diverse (come i Mac con chip M1 o i Raspberry Pi).
+
+grep "tar.gz"
+Spesso GitHub fornisce anche file .sha256 o .txt per verificare l'integrità. A noi serviva l'archivio compresso vero e proprio, quindi abbiamo isolato solo i file .tar.gz.
+
+cut -d '"' -f 4
+A questo punto avevamo isolato la riga giusta, ma era ancora "sporca", scritta in stile JSON, simile a:
+"browser_download_url": "https://github.com/.../file.tar.gz".
+Il comando cut ha letteralmente "tagliato" la riga usando le virgolette (") come forbici e ha estratto il quarto pezzo, ovvero l'URL pulito e perfetto.
+
+head -n 1
+Per estrema sicurezza (nel caso in cui i filtri precedenti avessero trovato due file simili), questo comando ha detto: "Prendi solo il primo risultato e ignora il resto".
+
+Tutto questo lavoro è stato svolto in una frazione di secondo. Il link pulito è stato salvato nella variabile DOWNLOAD_URL, che poi abbiamo passato al comando wget per far partire il download reale.
+
+In questo modo, abbiamo costruito un comando a "prova di futuro": non importa quante nuove versioni usciranno, quello script cercherà sempre l'ultima disponibile per il tuo hardware esatto!
+

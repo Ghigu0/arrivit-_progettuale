@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wasm-test-master
+spec:
+  template:
+    metadata:
+      annotations:
+        module.wasm.image/variant: compat-smart
+    spec:
+      # Forza lo scheduling sul nodo chiamato "master"
+      nodeName: master
+      runtimeClassName: wasmedge
+      containers:
+      - image: wasmedge/example-wasi:latest
+        name: wasm-test
+      restartPolicy: Never
+  backoffLimit: 1
