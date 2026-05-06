@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wasm-network-test
+  namespace: default
+spec:
+  runtimeClassName: wasmedge
+  restartPolicy: Never
+  containers:
+    - name: wasm-network-test
+      image: controller-wasm-network-test:latest
+      imagePullPolicy: IfNotPresent
