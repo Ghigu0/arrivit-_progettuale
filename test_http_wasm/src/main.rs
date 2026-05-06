@@ -4,7 +4,7 @@ use tokio::time::{timeout, Duration};
 async fn main() {
     println!("test network");
 
-    let url = "http://10.43.217.22:8080/api/v1/pods";
+    let url = "http://proxy-service.default.svc:8080/api/v1/pods";
 
     println!("calling {}", url);
 
