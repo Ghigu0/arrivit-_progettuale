@@ -29,6 +29,6 @@ spec:
 
       containers:
         - name: wasm-network-test
-          image: ghigu/attprog:test_wasmv4
+          image: ghigu/attprog:test_wasmv5
       
           imagePullPolicy: IfNotPresent
