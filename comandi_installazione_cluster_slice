@@ -1,0 +1,72 @@
+prima di tutto, devi installare la VPN 
+
+
+
+
+
+sul terminale
+
+    git clone https://gitlab.com/MMw_Unibo/platformeng/ccbp-cli.git
+    cd ccbp-cli
+
+    mkdir -p SlicesFile/.slices
+    mkdir -p SlicesFile/.ssh
+    mkdir -p SlicesFile/VPNConfigs
+    mkdir -p SlicesFile/kubeconfigs
+
+Costruisci l’immagine:
+
+    docker build -t ccbpcli .
+
+Poi avvia il container 
+
+    docker run -it --rm \
+    --mount type=bind,src=./SlicesFile/.ssh,dst=/root/.ssh \
+    --mount type=bind,src=./SlicesFile/.slices,dst=/root/.slices \
+    --mount type=bind,src=./SlicesFile/VPNConfigs,dst=/VPNConfigs \
+    --mount type=bind,src=./SlicesFile/kubeconfigs,dst=/SlicesFile/kubeconfigs \
+    ccbpcli /bin/bash
+
+Dentro il container tocca fare il login 
+
+    slices auth login
+
+e per verificare 
+
+    slices auth show
+
+Guardi la lista dei progetti con 
+
+    slices project list 
+
+e selezioni il progetto con 
+
+    slices project use NOME_PROGETTO
+
+poi lanci il comando
+
+    Quickstart
+
+
+
+
+In un altro terminale apri la cartella 
+
+     SlicesFile/VPNConfigs
+
+e attivi la VPN con 
+
+    sudo wg-quick up SlicesFile/VPNConfigs/NOME_FILE.conf
+
+per spegnerla userai 
+
+    sudo wg-quick down SlicesFile/VPNConfigs/client1.conf
+
+
+userai export e i file nella cartella kubeconfig per connetterti ai vari cluster 
+
+
+
+
+
+Per connettersi ai worker (per installare wasmedge che il kwasm operator è scassato)

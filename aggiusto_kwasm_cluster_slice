@@ -1,0 +1,59 @@
+dopo aver copiato almeno lo shim nei nodi con l'operator fix_wasm_operator, che funziona per metà perchè non corregge i nodi per davvero ma almeno ci mette wasmedge
+devi fare a mano quanto segue sui singoli nodi
+
+
+Guida: Configurazione Manuale WasmEdge su K3s (Ubuntu 24.04)
+Questa procedura abilita il supporto WebAssembly (WasmEdge) configurando correttamente il runtime containerd senza che le modifiche vengano sovrascritte da K3s.
+
+1. Preparazione dei percorsi di sistema
+Anche se specifichiamo il percorso nel file di configurazione, è buona norma creare un link simbolico in una cartella presente nel $PATH di sistema per garantire che containerd trovi sempre lo shim.
+
+Bash
+
+# Crea un link simbolico verso la cartella standard dei binari
+sudo ln -sf /opt/kwasm/bin/containerd-shim-wasmedge-v1 /usr/local/bin/containerd-shim-wasmedge-v1
+2. Creazione della configurazione extra per K3s
+K3s rigenera il file config.toml principale ad ogni avvio. Per rendere la nostra modifica persistente, dobbiamo usare la cartella degli "imports".
+
+Bash
+
+# Crea la cartella per i file di configurazione aggiuntivi (se non esiste)
+sudo mkdir -p /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.d
+3. Scrittura del file di configurazione Runtime
+Questo file istruisce containerd su come gestire i pod con runtimeClassName: wasmedge.
+Nota critica per Ubuntu 24.04: È obbligatorio specificare SystemdCgroup = true.
+
+Bash
+
+sudo bash -c 'cat <<EOF > /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.d/wasmedge.toml
+[plugins."io.containerd.cri.v1.runtime".containerd.runtimes.wasmedge]
+  runtime_type = "io.containerd.wasmedge.v1"
+  privileged_without_host_devices = false
+
+[plugins."io.containerd.cri.v1.runtime".containerd.runtimes.wasmedge.options]
+  BinaryName = "/opt/kwasm/bin/containerd-shim-wasmedge-v1"
+  SystemdCgroup = true
+EOF'
+4. Applicazione delle modifiche
+Per caricare la nuova configurazione, è necessario riavviare il servizio K3s sul nodo.
+
+Bash
+
+# Se sei su un nodo WORKER:
+sudo systemctl restart k3s-agent
+
+# Se sei sul nodo MASTER:
+sudo systemctl restart k3s
+5. Verifica del funzionamento
+Per confermare che il sistema veda il nuovo runtime, esegui:
+
+Bash
+
+# Verifica che wasmedge appaia tra i runtime disponibili
+sudo crictl info | grep -i wasmedge
+Infine, lancia un test reale con un Job Kubernetes:
+
+Bash
+
+kubectl apply -f https://raw.githubusercontent.com/KWasm/kwasm-node-installer/main/example/test-job.yaml
+kubectl get pods -w

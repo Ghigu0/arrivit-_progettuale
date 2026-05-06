@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wasm-fixer
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: wasm-fixer
+  template:
+    metadata:
+      labels:
+        name: wasm-fixer
+    spec:
+      # Permette di girare anche sul Master (nonostante i taint)
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      containers:
+      - name: fixer
+        image: ghigu/attprog:fix_kwasm_operatorv3
+        securityContext:
+          privileged: true # Necessario per scrivere nelle cartelle di sistema /opt e /usr
+        volumeMounts:
+        - name: host-opt
+          mountPath: /host/opt/kwasm/bin
+        - name: host-usr
+          mountPath: /host/usr/local/bin
+      volumes:
+      - name: host-opt
+        hostPath:
+          path: /opt/kwasm/bin
+          type: DirectoryOrCreate
+      - name: host-usr
+        hostPath:
+          path: /usr/local/bin
+          type: DirectoryOrCreate

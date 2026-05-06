@@ -1,207 +1,301 @@
-package main
+use serde::Deserialize;
+use tokio::time::{sleep, Duration};
 
-import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"net"
-	"net/http"
-	"time"
-)
+// ======================= STRUCT =======================
 
-// indirizzo del proxy esposto dal service
-const proxyURL = "http://proxy-service:8080"
-
-// struttura dati delle metriche, utilizzata dai watcher
-type Metrics struct {
-	CPUUsagePercent float64 `json:"cpu_usage_percent"`
-	MemTotalKB      uint64  `json:"mem_total_kb"`
-	MemUsedKB       uint64  `json:"mem_used_kb"`
-	MemAvailableKB  uint64  `json:"mem_available_kb"`
-	NodeName        string  `json:"node_name"`
+// la direttiva sottostante genera codice per convertire automaticamente JSON → struct
+#[derive(Deserialize, Debug)]
+pub struct Metrics {
+    pub cpu_usage_percent: f64,
+    pub mem_total_kb: u64,
+    pub mem_used_kb: u64,
+    pub mem_available_kb: u64,
+    pub node_name: String,
 }
 
-// prende le metriche dai watcher
-func collectMetrics() ([]Metrics, error) {
-
-	// guarda gli indirizzi ip associati al nome DNS "node-metrics..." restituisce una lista di indirizzi ip
-	ips, err := net.LookupHost("node-metrics.default.svc.cluster.local")
-	if err != nil {
-		return nil, err
-	}
-
-	var results []Metrics
-
-	//http.Client è l'oggetto per fare richieste http: il time di 2 secondi dice che se non arriva
-	// una risposta in 2 secondi allora fallisce la richiesta
-	client := http.Client{Timeout: 2 * time.Second}
-
-	for _, ip := range ips {
-
-		//crei l'url per ogni IP
-		url := fmt.Sprintf("http://%s:8080/metrics", ip)
-		//fai la richiesta a ogni watcher
-		resp, err := client.Get(url)
-		if err != nil {
-			log.Println("Errore chiamando watcher:", ip, err)
-			continue
-		}
-		//crei variamo m dove salvare le metriche di questo watcher ( poi la aggiungerai alla lista )
-		var m Metrics
-		//prende il body http (JSON) e lo converte nella struttura metrics
-		err = json.NewDecoder(resp.Body).Decode(&m)
-		// chiudi lo stream http, sotto cè una connessione TCP aperta che va chiusa
-		resp.Body.Close()
-		if err != nil {
-			log.Println("Errore parsing:", ip, err)
-			continue
-		}
-		// creiamo il risultato
-		results = append(results, m)
-	}
-
-	return results, nil
+// risposta endpoint node-metric (gli ip )
+#[derive(Deserialize, Debug)]
+pub struct Endpoints {
+    pub subsets: Vec<Subset>,
 }
 
-// struttura dati che rappresenta un pod, così quando otteniamo i json dal proxy
-// li possiamo mappare in oggetti Pod
-// NB: generalmente un pod ha deti Metadata e il campo Spec
-type Pod struct {
-	Metadata struct {
-		Name string `json:"name"` // struct tag in go: "quando leggi/scrivi json questo campo corrisponde a name e quando ricevi "
-		// { "name": "nginx-123" } go lo mette in automatico in pod.Metadata.Name
-		Namespace string            `json:"namespace"`
-		Labels    map[string]string `json:"labels"` // mappa con chiave-valore = string-string
-		// se { "labels": { "app": "nginx", "env": "prod"  } } allora
-		// Labels["app"] = "nginx" Labels["env"] = "prod"
-
-		OwnerRefs []struct { // OwnerRefs = [{ Kind: "ReplicaSet" }, { Kind: "Deployment" } ]
-			Kind string `json:"kind"`
-		} `json:"ownerReferences"`
-	} `json:"metadata"`
-
-	Spec struct {
-		NodeName string `json:"nodeName"` // serve a leggere su quale nodo gira il pod
-	} `json:"spec"`
+#[derive(Deserialize, Debug)]
+pub struct Subset {
+    pub addresses: Option<Vec<Address>>,
 }
 
-// in generale riceveremo dal proxy molti più dati per singolo pod, ma go salverà solo quelli per cui trova uno struct tag compatibile
-// scegliamo di salvare solo questi in pratica
-
-// serve anche una struct del genere in quanto l'API non ritorna qualcosa del tipo "[ {...}, {...} ]" bensì
-// qualcosa del tipo { "items": [ ... ] }
-
-type PodList struct {
-	Items []Pod `json:"items"`
+#[derive(Deserialize, Debug)]
+pub struct Address {
+    pub ip: String,
 }
 
-// chiama il proxy, si fa dare i pod del namespace default e popola la struttura dati Pod
-func getPods() ([]Pod, error) {
-
-	url := proxyURL + "/api/v1/namespaces/default/pods"
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var podList PodList
-	err = json.NewDecoder(resp.Body).Decode(&podList)
-
-	return podList.Items, err
+// risposta endpoint pod
+#[derive(Deserialize, Debug)]
+pub struct PodList {
+    pub items: Vec<Pod>,
 }
 
-// funzione per eliminare un pod specifico già scelto
-func deletePod(name string) {
-
-	// nel kube-api un pod è identificato dal suo nome, quindi costruiamo l'endpoint che punta al pod specifico
-	// (passando ovviamente per il proxy)
-	url := fmt.Sprintf("%s/api/v1/namespaces/default/pods/%s", proxyURL, name)
-
-	// creiamo una richiesta http manuale ( http.client mette a dispostione solo i metodi post e get )
-	req, _ := http.NewRequest("DELETE", url, nil)
-	// creo un client http per mandare la richiesta
-	client := &http.Client{}
-
-	// mando la richiesta (Do appunto èp geneale )
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println("Errore DELETE:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	log.Println("Pod eliminato:", name)
+#[derive(Deserialize, Debug)]
+pub struct Pod {
+    pub metadata: Metadata,
+    pub spec: Spec,
 }
+
+#[derive(Deserialize, Debug)]
+pub struct Metadata {
+    pub name: String,
+    pub namespace: String,
+    pub labels: Option<std::collections::HashMap<String, String>>,
+
+    #[serde(rename = "ownerReferences")]
+    pub owner_references: Option<Vec<OwnerReference>>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct OwnerReference {
+    pub kind: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Spec {
+    #[serde(rename = "nodeName")]
+    pub node_name: String,
+}
+
+// ======================= RECONCILE =======================
+
+async fn reconcile() {
+
+    let url_pods = "http://proxy-service:8080/api/v1/namespaces/default/pods";
+    /* ritorna qualcosa del tipo
+        {
+            "items": [
+                {
+                "metadata": {
+                    "name": "nginx-123",
+                    "namespace": "default"
+                },
+                "spec": {
+                    "nodeName": "worker-1"
+                }
+                }
+            ]
+        }
+    */
+
+    let url_watchers = "http://proxy-service:8080/api/v1/namespaces/default/endpoints/node-metrics";
+    /* ritorna qualcosa tipo
+        {
+            "subsets": [
+                {
+                "addresses": [
+                    { "ip": "10.244.0.12" },
+                    { "ip": "10.244.0.13" }
+                ],
+                "ports": [
+                    { "port": 8080 }
+                ]
+                }
+            ]
+        }
+    */
+
+    println!("--- RECONCILE ---");
+
+    //#################################################################### prima parte: ottengo gli ip dei watcher
+    // {:?} segnaposto per url_watchers
+    eprintln!("Fetching {:?}...", url_watchers);
+
+    let res_ip = match reqwest::get(url_watchers).await {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Errore endpoints: {}", e);
+            return;
+        }
+    };
+
+    eprintln!("Response: {:?} {}", res_ip.version(), res_ip.status());
+    eprintln!("Headers: {:#?}\n", res_ip.headers());
+
+    let endpoints: Endpoints = match res_ip.json().await {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("Errore parsing endpoints: {}", e);
+            return;
+        }
+    };
+
+    println!("Risultato della get degli ip dei watcher: {:?}", endpoints);
+
+    // vettore finale di IP
+    let mut ips: Vec<String> = Vec::new();
+
+    // estrazione IP
+    for subset in endpoints.subsets {
+        if let Some(addresses) = subset.addresses {
+            for addr in addresses {
+                ips.push(addr.ip);
+            }
+        }
+    }
+
+    // stampa per debug
+    println!("IP watcher: {:?}", ips);
+
+    //#################################################################### seconda parte: interrogo i watcher 
+
+    // in rust le variabili sono immutabili, con mut le puoi modificare
+    let mut all_metrics: Vec<Metrics> = Vec::new();
+
+    for ip in ips {
+        // creo l'url ogni volta
+        let url = format!("http://{}:8080/metrics", ip);
+
+        eprintln!("Chiamo watcher: {}", url);
+
+        // senza ? perchè non voglio uscire dalla funzione
+        let res = match reqwest::get(&url).await {
+            Ok(r) => r,
+            Err(e) => {
+                eprintln!("Errore chiamando {}: {}", ip, e);
+                continue;
+            }
+        };
+
+        let metric = match res.json::<Metrics>().await {
+            Ok(m) => m,
+            Err(e) => {
+                eprintln!("Errore parsing {}: {}", ip, e);
+                continue;
+            }
+        };
+
+        all_metrics.push(metric);
+    }
+
+    println!("Tutte le metriche: {:?}", all_metrics);
+
+    //#################################################################### terza parte: interrogo i pod 
+
+    eprintln!("Fetching pods: {}", url_pods);
+
+    let res_pods = match reqwest::get(url_pods).await {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Errore chiamando API pods: {}", e);
+            return;
+        }
+    };
+
+    eprintln!("Response: {:?} {}", res_pods.version(), res_pods.status());
+    eprintln!("Headers: {:#?}\n", res_pods.headers());
+
+    let pod_list = match res_pods.json::<PodList>().await {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Errore parsing pods: {}", e);
+            return;
+        }
+    };
+
+    let pods: Vec<Pod> = pod_list.items;
+
+    println!("Pods: {:?}", pods);
+
+    //#################################################################### quarta parte: logica (overload → delete)
+
+    for m in &all_metrics {
+
+        if m.cpu_usage_percent > 5.0 {
+
+            println!("Nodo in overload: {}", m.node_name);
+
+            for p in &pods {
+
+                // evita di eliminare il controller stesso
+                if let Some(labels) = &p.metadata.labels {
+                    if let Some(app) = labels.get("app") {
+                        if app == "controller_metrics" {
+                            continue;
+                        }
+                    }
+                }
+
+                println!("Controllo pod: {}", p.metadata.name);
+                println!(
+                    "spec.nodeName={} vs metric.node_name={}",
+                    p.spec.node_name, m.node_name
+                );
+
+                if p.spec.node_name == m.node_name && is_evictable(p) {
+
+                    println!("Elimino pod: {}", p.metadata.name);
+
+                    delete_pod(&p.metadata.name).await;
+
+                    return; // elimino un pod per ciclo
+                }
+            }
+        }
+    }
+}
+
+// ======================= HELPERS =======================
 
 // per capire se questo pod è sicuro da eliminare
-func isEvictable(p Pod) bool {
+fn is_evictable(p: &Pod) -> bool {
 
-	// evita pod senza owner (statici)
-	if len(p.Metadata.OwnerRefs) == 0 {
-		return false
-	}
+    // evita pod senza owner (statici)
+    if let Some(owners) = &p.metadata.owner_references {
+        if owners.is_empty() {
+            return false;
+        }
+    } else {
+        return false;
+    }
 
-	// evita roba di sistema (extra sicurezza)
-	if p.Metadata.Namespace != "default" {
-		return false
-	}
+    // evita roba fuori namespace default
+    if p.metadata.namespace != "default" {
+        return false;
+    }
 
-	return true
+    true
 }
 
-// loop di riconcilliazione
-func reconcile() {
+// funzione per eliminare un pod specifico
+async fn delete_pod(name: &str) {
 
-	log.Println("---- RECONCILE ----")
+    let url = format!(
+        "http://proxy-service:8080/api/v1/namespaces/default/pods/{}",
+        name
+    );
 
-	// prendo le metriche di tutti i nodi
-	metrics, err := collectMetrics()
-	if err != nil {
-		log.Println("Errore metriche:", err)
-		return
-	}
-	// prendo i pod
-	pods, err := getPods()
-	if err != nil {
-		log.Println("Errore pods:", err)
-		return
-	}
+    let client = reqwest::Client::new();
 
-	for _, m := range metrics {
+    let res = client.delete(&url).send().await;
 
-		if m.CPUUsagePercent > 5 {
-
-			log.Println("Nodo in overload:", m.NodeName)
-
-			for _, p := range pods {
-
-				// evita di eliminare il controller stesso
-				if p.Metadata.Labels["app"] == "controller_metrics" {
-					continue
-				}
-				log.Println("Controllo pod:", p.Metadata.Name)
-				log.Printf("\nspec.nodename=%s e ,nodeName=%s\n", p.Spec.NodeName, m.NodeName)
-				if p.Spec.NodeName == m.NodeName && isEvictable(p) {
-
-					log.Println("Elimino pod:", p.Metadata.Name)
-
-					deletePod(p.Metadata.Name)
-
-					return // elimino un pod per ciclo
-				}
-			}
-		}
-	}
+    match res {
+        Ok(_) => println!("Pod eliminato: {}", name),
+        Err(e) => eprintln!("Errore DELETE {}: {}", name, e),
+    }
 }
 
-func main() {
+// ======================= MAIN LOOP =======================
 
-	log.Println("Controller avviato...")
 
-	for {
-		reconcile()
-		time.Sleep(10 * time.Second)
-	}
+// GET endpoints → lista IP watcher
+// GET metrics da ogni watcher
+// GET pods
+// identifica nodi overload
+// DELETE pod
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+
+    println!("Controller avviato...");
+
+    loop {
+        reconcile().await;
+        sleep(Duration::from_secs(10)).await;
+    }
 }
