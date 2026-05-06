@@ -23,6 +23,10 @@ spec:
         module.wasm.image/variant: compat-smart
     spec:
       runtimeClassName: wasmedge
+
+      nodeSelector:
+        kubernetes.io/hostname: worke
+
       containers:
         - name: wasm-network-test
           image: ghigu/attprog:test_wasm
