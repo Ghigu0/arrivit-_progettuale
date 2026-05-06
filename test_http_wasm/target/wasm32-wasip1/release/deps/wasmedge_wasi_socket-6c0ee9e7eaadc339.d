@@ -1,0 +1,10 @@
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/wasmedge_wasi_socket-6c0ee9e7eaadc339.d: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/poll.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/socket.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/wasi_poll.rs
+
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/libwasmedge_wasi_socket-6c0ee9e7eaadc339.rlib: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/poll.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/socket.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/wasi_poll.rs
+
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/libwasmedge_wasi_socket-6c0ee9e7eaadc339.rmeta: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/poll.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/socket.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/wasi_poll.rs
+
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/lib.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/poll.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/socket.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasmedge_wasi_socket-0.5.5/src/wasi_poll.rs:

@@ -1,0 +1,14 @@
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/serde-470f535bb7d54721.d: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/build/serde-06bcbf530b17d6ac/out/private.rs
+
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/libserde-470f535bb7d54721.rlib: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/build/serde-06bcbf530b17d6ac/out/private.rs
+
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/libserde-470f535bb7d54721.rmeta: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/build/serde-06bcbf530b17d6ac/out/private.rs
+
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/build/serde-06bcbf530b17d6ac/out/private.rs:
+
+# env-dep:OUT_DIR=/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/build/serde-06bcbf530b17d6ac/out

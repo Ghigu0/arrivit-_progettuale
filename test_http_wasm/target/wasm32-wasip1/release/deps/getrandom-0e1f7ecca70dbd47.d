@@ -1,0 +1,11 @@
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/getrandom-0e1f7ecca70dbd47.d: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/util.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error_impls.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/wasi.rs
+
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/libgetrandom-0e1f7ecca70dbd47.rlib: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/util.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error_impls.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/wasi.rs
+
+/home/ghigu/Scrivania/attività_progettuale/test_http_wasm/target/wasm32-wasip1/release/deps/libgetrandom-0e1f7ecca70dbd47.rmeta: /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/lib.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/util.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error_impls.rs /home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/wasi.rs
+
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/lib.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/util.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/error_impls.rs:
+/home/ghigu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/wasi.rs:
