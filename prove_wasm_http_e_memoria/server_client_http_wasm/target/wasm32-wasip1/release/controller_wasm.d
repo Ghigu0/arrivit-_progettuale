@@ -1,0 +1,1 @@
+/home/ghigu/Scrivania/attività_progettuale/prove_wasm_http_e_memoria/http\ (Copia)/target/wasm32-wasip1/release/controller_wasm.wasm: /home/ghigu/Scrivania/attività_progettuale/prove_wasm_http_e_memoria/http\ (Copia)/src/main.rs

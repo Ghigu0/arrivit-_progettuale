@@ -1,0 +1,66 @@
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: wasmedge
+handler: wasmedge
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasm-http-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wasm-http-client
+  template:
+    metadata:
+      labels:
+        app: wasm-http-client
+      annotations:
+        module.wasm.image/variant: compat-smart
+    spec:
+      runtimeClassName: wasmedge
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - worker1
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                  - key: node-role.kubernetes.io/master
+                    operator: DoesNotExist
+
+      containers:
+        - name: wasm-http-client
+          image: ghigu/attprog:http_server
+          imagePullPolicy: IfNotPresent
+
+        
+
+          ports:
+            - containerPort: 8080
+              name: http
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: wasm-http-client-service
+spec:
+  type: NodePort
+  selector:
+    app: wasm-http-client
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      nodePort: 30081

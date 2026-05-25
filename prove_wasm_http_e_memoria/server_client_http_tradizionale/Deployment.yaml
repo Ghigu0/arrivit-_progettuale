@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linux-http-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: linux-http-client
+  template:
+    metadata:
+      labels:
+        app: linux-http-client
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - worker1
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                  - key: node-role.kubernetes.io/master
+                    operator: DoesNotExist
+
+      containers:
+        - name: linux-http-client
+          image: ghigu/attprog:linux_http_serverv2
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+              name: http
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: linux-http-client-service
+spec:
+  type: NodePort
+  selector:
+    app: linux-http-client
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      nodePort: 30082

@@ -24,11 +24,17 @@ spec:
     spec:
       runtimeClassName: wasmedge
 
-      nodeSelector:
-        kubernetes.io/hostname: worke
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                  - key: node-role.kubernetes.io/master
+                    operator: DoesNotExist
 
       containers:
         - name: wasm-network-test
-          image: ghigu/attprog:test_wasmv5
-      
+          image: ghigu/attprog:test_wasmv7
           imagePullPolicy: IfNotPresent
